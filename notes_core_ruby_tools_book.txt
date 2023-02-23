@@ -1,0 +1,7 @@
+Ruby
+- typically pre-installed
+- $ which ruby --> /usr/bin/ruby
+
+Ruby Version Manager (rbenx, rvm) --> top level, controls multiple installations of Ruby and all other tools
+Bundler --> dependencies
+Rake --> repetetive project tasks

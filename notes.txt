@@ -1,0 +1,159 @@
+Closures
+- chunk of code, without an explicit name, with a binding (surrounding variables & methods) that can be passed around and executed
+- main ways to work with closures
+  - instantiate an object from the Proc class
+  - using a lamda
+  - using a block
+- Binding (closures will retain a reference to its surrounding artifacts)
+
+https://ablogaboutcode.com/2012/01/04/the-ampersand-operator-in-ruby
+"In Ruby you have two kinds of code blocks, Blocks and Procs. The two are very closely related but have some important differences. You can define and reference Procs and assign them to variables. Blocks are always related to a method call and can’t be defined outside of that context. The way you tell them apart is that Procs are always preceded by Proc.new, proc, lambda or ->() when they are defined."
+"&object is evaluated in the following way:
+
+if object is a block, it converts the block into a simple proc.
+if object is a Proc, it converts the object into a block while preserving the lambda? status of the object.
+if object is not a Proc, it first calls #to_proc on the object and then converts it into a block."
+
+Blocks   do ... end   { ... }
+
+Example:
+[1, 2, 3].each do |num|
+	puts num
+end
+
+[1, 2, 3]         this object is an Array Object
+.each   					Array#each method is called on the object
+do ... end        block is an argument to the Array#each method call
+
+
+Passing block into a method
+- block can be passed in to a method
+- yield keywork will execute the provided block inside the method, "passing execution to the block"
+- but note the the arguments to the method must still match the parameters in the definition regardless of whether a block is passed in
+- if yield call present in method, a LocalJumpError if the block is not given as an argument
+- add conditional with Kernel#block_given method to avoid above error
+
+Example:
+
+def echo_with_yield(str)
+	yield if block_given?
+	str
+end
+
+Notice that the block is an implicit parameter, whereas 'str' is an explicit parameter
+
+See this lesson for talking through the process from invocation through execution
+https://launchschool.com/lessons/c0400a9c/assignments/5a060a20
+
+The block itself sometimes requires an argument.
+Block parameter should have unique name to avoid variable shadowing (conflict with local variables outside the scope of the block).
+
+Arity
+- Lenient Arity:  Ruby doesn't complain if too many or too few arguments for a block & proc
+  - Extra block arguments e.g. yield(1, 2) if only 1 parameters expected, will be ignored
+  - Less block argument e.g. yield(1) if 2 parameters expected, will use the first and only argument
+- Strict Arity:  must pass exact number of arguments for a method or lambda
+- NOTE this ignores the following:
+  - optional arguments
+  	- arity rules do not apply for optional arguments
+  - variable arguments
+  - variable keyword arguments
+
+Blocks are like methods in some ways:
+- blocks have a return value, and that return value is determined based on the last expression in the block
+- blocks and either (1) mutate the argument with a destructive methods or (2) return a value
+
+a = nil, "#{a}" returns "" (an empty string)
+
+Blocks are useful for
+(1) defer some implementation code to method invocation decision
+	- if method implemeber not 100% sure how method will be called, built in a generic sense
+	- e.g. Array#select method
+(2) "before" and "after" (... what? - exactly the point) actions in a method (sandwhich code)
+
+Explicit block parameter
+
+def test(&block)
+	puts "what's &block? #{block}"
+end
+
+- Ruby converts blocks passed in as explicit blocks to a simple Proc object (this is why we need to use #call to invoke the Proc object)
+- &block is special parameter converts the block argument to "simple" Proc
+- don't use the & when refering to the object within the method
+- this allows more flexibility, it is a variable that represents a block which can be passed to another methods
+- block.call rather than yield
+
+Writing a generic iterator method allows the method caller to add additional implementation detail at method invocation time to the block.
+
+
+LOCAL VARIABLES
+
+Revisiting local variable scope:  outer scope, new scope, nested scope
+- outer variables are available in the new & nested scope
+- inner variables not accessible in the outer scope
+- methods (whose invocation can look like a variable) do not follow this rule
+
+
+BINDING
+A Proc keeps track of the surrounding context, this is called its binding.
+
+
+
+
+Hello
+
+You could consider supplementing the Unary & section of this lesson with some with the following concise statements from this helpful article (https://ablogaboutcode.com/2012/01/04/the-ampersand-operator-in-ruby):
+
+[1]
+"You can define and reference Procs and assign them to variables. Blocks are always related to a method call and can’t be defined outside of that context."
+
+[2]
+"&object is evaluated in the following way:
+- if object is a block, it converts the block into a simple proc.
+- if object is a Proc, it converts the object into a block while preserving the lambda? status of the object.
+- if object is not a Proc, it first calls #to_proc on the object and then converts it into a block."
+
+
+=================================
+TESTING
+
+write tests to prevent regression
+
+Vocabulary
+ - Test Suite - set of tests ('all the tests for a project')
+ - Test - can contains multiple assertions ('situation or context in which tests are run')
+ - Assertion - verification step that data returned is expected, within a test with perhaps other assertions
+
+RSpec vs Minitest
+ - RSpec
+  - DSL (Domain Specific Language)
+ - Minitest
+  - Ruby's default library, is a "bundled gem"
+
+
+Minitest example:
+
+require 'minitest/autorun'  # load necessary files from minitest gem
+
+require_relative 'car'  # require file which is being tested, from current directory
+
+class CarTest < MiniTest::Test   # test Class must be a subclass to MiniTest::Test
+  def test_wheels
+    car = Car.new
+    assert_equal(4, car.wheels)
+  end
+
+  def test_skip
+    skip
+  end
+end
+
+
+SEAT ... Set Up, Execute, Assert, Tear down ... minimum is EA
+1. Set up necessary objects
+  def setup
+      @car = Car.new   # note instance variable so it can be used in other tests
+  end
+2. Execute code (might be simple object instantiation)
+3. Assert code did right thing
+4. Tear down and clean up lingering artifacts
